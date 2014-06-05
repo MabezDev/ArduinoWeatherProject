@@ -78,11 +78,12 @@ boolean button = false;
 boolean lastb = false;
 int buttonPin = 6;
 int index = 0;
-int maxPages = 2;
+int maxPages = 3;
 
-int centerx = 42;
-int centery = 24;
+int centerx = 42-2;//- 2 is half font size
+int centery = 29;
 int needleLenght = 12;
+int bonus = 3;
 
 void setup()
 {
@@ -90,6 +91,7 @@ void setup()
   myGLCD.setFont(SmallFont);
   dht.begin();
   pinMode(buttonPin,INPUT);
+  pinMode(A0, INPUT);
   
 }
 
@@ -120,13 +122,19 @@ void pageManager(){
   switch(index){
     case 0:
     myGLCD.clrScr();
-    temp();
+    //temp();
+    tempAndHum();
+    
     break;
     case 1:
     myGLCD.clrScr();
-    tempAndHum();
+    soilHum();
     break;
     case 2:
+    myGLCD.clrScr();
+    windDirection();
+    break;
+    case 3:
     myGLCD.clrScr();
     sleepPage();
     break;
@@ -152,11 +160,30 @@ void tempAndHum(){
     delay(10); 
 }
 
-void temp(){//temp page
+void soilHum(){
+  int input = analogRead(A0);
+  float voltage = (input * 5.0) /1024;
+  float percent = 100 - (voltage/5)*100;
+  myGLCD.setFont(SmallFont);
+  myGLCD.print("Soil Humidity:",0,0);
+  myGLCD.print("%",64,36);
+  myGLCD.setFont(BigNumbers);
+  myGLCD.printNumI((int)percent,32,24,2,'0');
+  
+}
+
+void windDirection(){
  myGLCD.setFont(SmallFont);
+ myGLCD.print("Wind Direction",0,0);
+ myGLCD.print("N",centerx,centery-needleLenght-bonus-3);
+ myGLCD.print("NE",centerx+needleLenght+bonus,centery-needleLenght-bonus-3);
+ myGLCD.print("E",centerx+needleLenght+bonus+5,centery-3);
+ myGLCD.print("SE",centerx+needleLenght+bonus,centery+needleLenght+bonus-3);
+ myGLCD.print("S",centerx,centery+needleLenght+bonus-3);
+ myGLCD.print("SW",centerx-needleLenght-bonus-5,centery+needleLenght+bonus-3);
+ myGLCD.print("W",centerx-needleLenght-bonus-5,centery-3);
+ myGLCD.print("NW",centerx-needleLenght-bonus-5,centery-needleLenght-bonus-3);
  moveNeedleTo(index);
- 
- myGLCD.printNumI(index,0,24);
 }
 
 void moveNeedleTo(int pos){
@@ -190,7 +217,7 @@ void moveNeedleTo(int pos){
   
 }
 
-void drawArrow(){
+void drawArrow(){//deprecianted
   myGLCD.drawLine(10,10,10,20);
   myGLCD.drawLine(10,10,20,15);
   myGLCD.drawLine(10,20,20,15);
