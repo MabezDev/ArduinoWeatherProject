@@ -80,13 +80,14 @@ int buttonPin = 6;
 int index = 0;
 int maxPages = 3;
 
+
 int centerx = 42-2;//- 2 is half font size
 int centery = 29;
 int needleLenght = 12;
 int bonus = 3;
-
 void setup()
 {
+ 
   myGLCD.InitLCD();
   myGLCD.setFont(SmallFont);
   dht.begin();
@@ -173,45 +174,55 @@ void soilHum(){
 }
 
 void windDirection(){
+   for(int i = 0; i<8;i++){//for debuggin remove when input aquired
+   myGLCD.clrScr();
  myGLCD.setFont(SmallFont);
  myGLCD.print("Wind Direction",0,0);
  myGLCD.print("N",centerx,centery-needleLenght-bonus-3);
  myGLCD.print("NE",centerx+needleLenght+bonus,centery-needleLenght-bonus-3);
- myGLCD.print("E",centerx+needleLenght+bonus+5,centery-3);
+ myGLCD.print("E",centerx+needleLenght+bonus+6,centery-3);
  myGLCD.print("SE",centerx+needleLenght+bonus,centery+needleLenght+bonus-3);
  myGLCD.print("S",centerx,centery+needleLenght+bonus-3);
  myGLCD.print("SW",centerx-needleLenght-bonus-5,centery+needleLenght+bonus-3);
  myGLCD.print("W",centerx-needleLenght-bonus-5,centery-3);
  myGLCD.print("NW",centerx-needleLenght-bonus-5,centery-needleLenght-bonus-3);
- moveNeedleTo(index);
+
+   
+    moveNeedleTo(i); 
+    myGLCD.update();
+    delay(1000);
+    
+ }
+ index++;
 }
 
 void moveNeedleTo(int pos){
   int posi = pos;
+  int needleTempx = centerx +4;
  switch(posi){
   case 0 :
-    myGLCD.drawLine(centerx, centery,centerx,centery-needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx,centery-needleLenght);
     break;
   case 1:
-    myGLCD.drawLine(centerx, centery,centerx+needleLenght,centery-needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx+needleLenght,centery-needleLenght);
     break;
   case 2:
-    myGLCD.drawLine(centerx, centery,centerx+needleLenght,centery);
+    myGLCD.drawLine(needleTempx, centery,needleTempx+needleLenght,centery);
     break;
   case 3:
-    myGLCD.drawLine(centerx, centery,centerx+needleLenght,centery+needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx+needleLenght,centery+needleLenght);
     break;
   case 4:
-    myGLCD.drawLine(centerx, centery,centerx,centery+needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx,centery+needleLenght);
     break;
   case 5:
-    myGLCD.drawLine(centerx, centery,centerx-needleLenght,centery+needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx-needleLenght,centery+needleLenght);
     break;
   case 6:
-    myGLCD.drawLine(centerx, centery,centerx-needleLenght,centery);
+    myGLCD.drawLine(needleTempx, centery,needleTempx-needleLenght,centery);
     break;
   case 7:
-    myGLCD.drawLine(centerx, centery,centerx-needleLenght,centery-needleLenght);
+    myGLCD.drawLine(needleTempx, centery,needleTempx-needleLenght,centery-needleLenght);
     break;
  } 
   
