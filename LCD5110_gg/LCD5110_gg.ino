@@ -14,9 +14,17 @@
 
 #include "DHT.h"
 
+#include <Encoder.h>
+
+// Change these two numbers to the pins connected to your encoder.
+//   Best Performance: both pins have interrupt capability
+//   Good Performance: only the first pin has interrupt capability
+//   Low Performance:  neither pin has interrupt capability
+Encoder myEnc(2, 3);
 
 
-#define DHTPIN 3     // what pin we're connected to
+
+#define DHTPIN 4     // what pin we're connected to
 
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11   // DHT 11 
@@ -50,6 +58,8 @@ int centerx = 42-2;//- 2 is half font size
 int centery = 29;
 int needleLenght = 12;
 int bonus = 3;
+long oldPosition  = -999;
+long angle;
 
 float LightTime;
 void setup()
@@ -60,18 +70,23 @@ void setup()
   dht.begin();
   pinMode(buttonPin,INPUT);
   pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
   pinMode(light,OUTPUT);
-  
+  digitalWrite(light,LOW);//turn lcd on initally
+  Serial.begin(9600);
 }
 
 void loop()
 { 
+  returnDegree();
+  Serial.println(angle);
   pageManager();
   
   myGLCD.update();
 }
 
 void pageManager(){
+
  button = digitalRead(buttonPin);
  
   if (button != lastb) {
@@ -92,7 +107,7 @@ void pageManager(){
   } 
   
   switch(index){
-    case 0:
+    case 2:
     myGLCD.clrScr();
     //temp();
     tempAndHum();
@@ -101,7 +116,7 @@ void pageManager(){
     myGLCD.clrScr();
     soilHum();
     break;
-    case 2:
+    case 0:
     myGLCD.clrScr();
     windDirection();
     break;
@@ -121,7 +136,6 @@ void pageManager(){
   }
   if((millis() - LightTime)>15000){
    digitalWrite(light,HIGH); 
-   index = 3;
   }
 }
 
@@ -155,7 +169,32 @@ void soilHum(){
   
 }
 
+
 void windDirection(){//for debuggin remove when input aquired
+ if(angle < 44 && angle >=0){
+   moveNeedleTo(0);
+ }
+ if(angle < 89 && angle >=45){
+   moveNeedleTo(1);
+ }
+ if(angle < 134 && angle >=90){
+   moveNeedleTo(2);
+ }
+ if(angle < 179 && angle >=135){
+   moveNeedleTo(3);
+ }
+ if(angle < 224 && angle >=180){
+   moveNeedleTo(4);
+ }
+ if(angle < 269 && angle >=225){
+   moveNeedleTo(5);
+ }
+ if(angle < 314 && angle >=270){
+   moveNeedleTo(6);
+ }
+ if(angle <= 360 && angle >=315){
+   moveNeedleTo(7);
+ }
  myGLCD.setFont(SmallFont);
  myGLCD.print("Wind Direction",0,0);
  myGLCD.print("N",centerx,centery-needleLenght-bonus-3);
@@ -166,9 +205,31 @@ void windDirection(){//for debuggin remove when input aquired
  myGLCD.print("SW",centerx-needleLenght-bonus-5,centery+needleLenght+bonus-3);
  myGLCD.print("W",centerx-needleLenght-bonus-5,centery-3);
  myGLCD.print("NW",centerx-needleLenght-bonus-5,centery-needleLenght-bonus-3);
+}
 
-   
-moveNeedleTo(0); 
+void returnDegree(){
+ long newPosition = myEnc.read();
+  if (newPosition != oldPosition) {
+    oldPosition = newPosition;
+    //Serial.println(newPosition);
+    long degree = (newPosition/4)*18;
+    
+    if(degree<0){
+      degree = 360;
+      oldPosition =  999;
+      myEnc.write(80);
+    }
+    if(degree >360){
+       degree = 0; 
+       oldPosition =  0;
+      myEnc.write(0);
+    }
+    
+    angle = degree;
+}
+//else{
+ // return angle;
+//}
 }
 
 void moveNeedleTo(int pos){
@@ -212,13 +273,27 @@ void windSpeed(){
 }
 
 void batteryMonitor(){
+  float battVol = (float)readVcc()/1000;
+  float percent = (battVol/4.2)*100;
   myGLCD.setFont(SmallFont);
   myGLCD.print("Battery level:",0,0);
   myGLCD.print("%",67,34);
   myGLCD.setFont(BigNumbers);
-  myGLCD.printNumI(100,20,24,3,'0');
+  myGLCD.printNumI((int)percent,20,24,3,'0');
 }
 
+long readVcc() {
+  long result;
+  // Read 1.1V reference against AVcc
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Convert
+  while (bit_is_set(ADCSRA,ADSC));
+  result = ADCL;
+  result |= ADCH<<8;
+  result = 1126400L / result; // Back-calculate AVcc in mV
+  return result;
+}
 void sleepPage(){
   myGLCD.setFont(SmallFont);
    myGLCD.print("Sleeping!",12,0);
