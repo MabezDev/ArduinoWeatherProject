@@ -38,7 +38,7 @@ Encoder myEnc(2, 3);
 
 DHT dht(DHTPIN, DHTTYPE);
 
-LCD5110 myGLCD(8,9,10,11.,12);
+LCD5110 myGLCD(8,9,10,11,12);
 
 
 extern uint8_t SmallFont[];
@@ -73,13 +73,13 @@ void setup()
   pinMode(A1, INPUT);
   pinMode(light,OUTPUT);
   digitalWrite(light,LOW);//turn lcd on initally
-  Serial.begin(9600);
+ Serial.begin(9600);
 }
 
 void loop()
 { 
   returnDegree();
-  Serial.println(angle);
+  
   pageManager();
   
   myGLCD.update();
@@ -171,7 +171,8 @@ void soilHum(){
 
 
 void windDirection(){//for debuggin remove when input aquired
- if(angle < 44 && angle >=0){
+ Serial.println(angle);//WORKING DO NOT CHNAGE THESE NUMBERS
+ if((angle < 44 && angle >= 0)  || (angle <=360 && angle>=342)){
    moveNeedleTo(0);
  }
  if(angle < 89 && angle >=45){
@@ -192,9 +193,10 @@ void windDirection(){//for debuggin remove when input aquired
  if(angle < 314 && angle >=270){
    moveNeedleTo(6);
  }
- if(angle <= 360 && angle >=315){
+ if(angle <= 340 && angle >=315){
    moveNeedleTo(7);
  }
+ 
  myGLCD.setFont(SmallFont);
  myGLCD.print("Wind Direction",0,0);
  myGLCD.print("N",centerx,centery-needleLenght-bonus-3);
@@ -224,6 +226,7 @@ void returnDegree(){
        oldPosition =  0;
       myEnc.write(0);
     }
+    
     
     angle = degree;
 }
@@ -274,11 +277,14 @@ void windSpeed(){
 
 void batteryMonitor(){
   float battVol = (float)readVcc()/1000;
-  float percent = (battVol/4.2)*100;
+  
+  float percent = (battVol/3.2)*100;
   myGLCD.setFont(SmallFont);
+  
   myGLCD.print("Battery level:",0,0);
   myGLCD.print("%",67,34);
   myGLCD.setFont(BigNumbers);
+  //myGLCD.printNumI((int)battVol,0,0);
   myGLCD.printNumI((int)percent,20,24,3,'0');
 }
 
